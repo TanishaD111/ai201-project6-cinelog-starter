@@ -32,9 +32,9 @@ I'd prefer watchlists to default to "date added" order rather than alphabetical.
 
 ## Comment 6 — Rebase
 A refactor merged to main that changed film IDs from integers to UUIDs. Your watchlist code still references integer IDs. Please rebase on main and update accordingly.
-**What conflicted:**
-**How I resolved it:**
-**How I verified no conflict remains:**
+**What conflicted:** Rebasing `feature/watchlist` onto `main` produced two conflicts. (1) `.gitignore` — an add/add conflict, since both branches independently created one. (2) `models.py` — main had migrated `Film.id` and `CollectionEntry.film_id` to `String(36)` UUIDs, while my branch added the `WatchlistEntry` model with an integer `film_id` foreign key pointing at `film.id`.
+**How I resolved it:** For `.gitignore`, merged both sets of ignore rules into one file. For `models.py`, kept main's UUID definitions of `Film` and `CollectionEntry` and changed `WatchlistEntry.film_id` from `db.Integer` to `db.String(36)` so the foreign key matches the now-UUID `Film.id`. I also updated the remaining integer assumptions the merge didn't touch: the `film_id` docstrings in `add_to_watchlist()` and the add route (int → UUID), and the test's nonexistent id (`999999` → a UUID string), matching how `test_collection.py` does it.
+**How I verified no conflict remains:** `git log --oneline --merges origin/main..HEAD` is empty (linear history, no merge commits) and `git merge-base --is-ancestor origin/main HEAD` confirms the branch sits on top of main. No conflict markers remain, all modules compile, and the test suite passes.
 
 ## PR Description
 <!-- Written at the end — feature overview, design decisions, manual testing steps -->
