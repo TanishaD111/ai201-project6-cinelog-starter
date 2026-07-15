@@ -26,9 +26,9 @@ I notice watchlists default to public=True. We don't have a documented decision 
 
 ## Comment 5 — Sort order
 I'd prefer watchlists to default to "date added" order rather than alphabetical. Most users want to see what they added recently. I'm open to discussion if you see it differently — but let's make a decision and document it.
-**My position:** 
-**Reasoning:** 
-**Engagement with reviewer's point:** 
+**My position:** Keep the default sort alphabetical by title (the current `get_watchlist` behavior).
+**Reasoning:** A watchlist is something users return to in order to *find a specific film to watch* — "what do I want to put on tonight?" Alphabetical order makes a title predictable to locate: you scan to roughly where it should be and it's there. Date-added order optimizes for a different task (seeing what you just added), but for finding a known title it means scrolling the whole list, since position depends on when it was added rather than anything the user can predict. As a watchlist grows, alphabetical keeps lookup roughly constant while date-added gets progressively harder to scan.
+**Engagement with reviewer's point:** The reviewer's point is fair — recent-first is genuinely better for the "what did I just add" moment, and that's a real use case. Where we differ is which task the *default* should optimize for: I'm weighting find-a-title (repeated, happens every time you pick something to watch) over review-recent-additions (occasional, right after adding). Since the field and query are easy to change, this isn't a one-way door — a good follow-up would be to let the client pass a sort parameter (`?sort=recent`) so both are supported and the default stops being a forced choice. Happy to switch the default to date-added if we'd rather align with the collection view, but documenting alphabetical as the intentional decision here.
 
 ## Comment 6 — Rebase
 A refactor merged to main that changed film IDs from integers to UUIDs. Your watchlist code still references integer IDs. Please rebase on main and update accordingly.
