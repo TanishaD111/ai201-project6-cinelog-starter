@@ -10,8 +10,8 @@ save_to_watchlist() should follow the project's naming convention. Compare with 
 
 ## Comment 2 — Deduplication
 What happens if a user calls this with a film that's already on their watchlist? The current implementation would add a duplicate entry. Please handle this case.
-**What I did:** 
-**How I verified:** 
+**What I did:** Mirrored the two-layer dedup approach already used for collections. (1) Added a `UniqueConstraint("user_id", "film_id")` to the `WatchlistEntry` model — it previously lacked the constraint `CollectionEntry` has, so duplicates were possible at the DB level. (2) Added an `AlreadyInWatchlistError` exception and a pre-insert check in `add_to_watchlist()` so a duplicate raises a clean domain error instead of a DB IntegrityError. (3) Updated the `POST /watchlist/<user_id>/add` route to catch it and return HTTP 409, matching the collection route's behavior.
+**How I verified:** Adding the same film twice now raises `AlreadyInWatchlistError` and only one row persists; the endpoint returns 409 on the second add. Confirmed the models/service/route compile and the existing suite still passes.
 
 ## Comment 3 — Missing test
 Please add a test for the case where film_id doesn't exist in the database. Look at the existing tests in test_collection.py — the pattern is there. Create a new file tests/test_watchlist.py. Read tests/test_collection.py and find test_add_to_collection_nonexistent_film_raises — write the equivalent test for add_to_watchlist() following the same fixture and assertion structure.
