@@ -20,9 +20,9 @@ Please add a test for the case where film_id doesn't exist in the database. Look
 
 ## Comment 4 — Default visibility
 I notice watchlists default to public=True. We don't have a documented decision on default visibility for user lists. Before I can approve this, I need you to add a note to your PR description explaining your reasoning. I want to make sure we're being intentional here, not just inheriting a default.
-**My position:** 
-**Reasoning:** 
-**Tradeoff acknowledged:** 
+**My position:** New watchlist entries should default to `public=True`. This is a deliberate choice, not an inherited default.
+**Reasoning:** The watchlist is a discovery/social feature — its value comes from being shareable (seeing what friends plan to watch, recommending films). Defaulting to public keeps the primary use case friction-free: a user who wants to share their list doesn't have to flip a setting first. This mirrors how comparable "want to watch" lists work on platforms like Letterboxd, where lists are shareable by default. The `public` field is per-entry and writable, so a user who wants privacy can already set it to `False`; the default only decides the starting point, not the ceiling on control.
+**Tradeoff acknowledged:** The real cost is privacy-by-default: a user's watchlist is visible before they make any explicit sharing choice, which can surprise people who assume personal lists start private. I judged that acceptable because a watchlist is low-sensitivity data (films someone intends to watch, not viewing history or ratings) and the feature is fundamentally about sharing. If we later add higher-sensitivity lists, or if user research shows people expect privacy-first, the honest move is to flip the default to `public=False` (opt-in sharing) rather than rely on users discovering the toggle. Flagging this so the default is a recorded decision we can revisit, not an accident.
 
 ## Comment 5 — Sort order
 I'd prefer watchlists to default to "date added" order rather than alphabetical. Most users want to see what they added recently. I'm open to discussion if you see it differently — but let's make a decision and document it.
