@@ -1,7 +1,7 @@
 # PR Response Doc — CineLog Watchlist Feature
 
 ## AI Usage
-<!-- Fill in at the end — how you used AI tools during this project -->
+I used Claude mainly to understand the codebase before making changes — asking specific questions about individual files (like `models.py`, `collection_service.py`, and `test_collection.py`) to learn the naming conventions, how deduplication was handled, and how things fit together. For the review comments, I used Claude to help locate the bug or issue each comment pointed to, then I went and made the fix myself; afterwards I asked Claude to double-check my work and confirm I hadn't missed anything. For the test file, Claude helped me understand the existing test structure so I could write a new test in the same format. The opinion-based comments (default visibility and sort order) were my own decisions — I didn't really rely on Claude for those positions. Claude also helped me put together the PR description.
 
 ## Comment 1 — Rename
 save_to_watchlist() should follow the project's naming convention. Compare with add_to_collection() — the pattern here is verb_to_noun. Please rename to add_to_watchlist() and update all call sites.
@@ -37,4 +37,54 @@ A refactor merged to main that changed film IDs from integers to UUIDs. Your wat
 **How I verified no conflict remains:** `git log --oneline --merges origin/main..HEAD` is empty (linear history, no merge commits) and `git merge-base --is-ancestor origin/main HEAD` confirms the branch sits on top of main. No conflict markers remain, all modules compile, and the test suite passes.
 
 ## PR Description
-<!-- Written at the end — feature overview, design decisions, manual testing steps -->
+
+### What the watchlist feature does
+It lets a user save films they want to watch later — separate from their collection (films they've already watched). Users can add a film to their watchlist and view their whole watchlist. A film can't be added twice, and you can't add a film that doesn't exist.
+
+Endpoints (under `/watchlist`):
+- `GET /watchlist/<user_id>` — view a user's watchlist.
+- `POST /watchlist/<user_id>/add` — add a film. Body: `{ "film_id": "<uuid>" }`.
+
+### Design decisions
+1. **Default visibility: public.** New watchlist entries are public by default, because the watchlist is meant to be shared. Users can still make an entry private.
+2. **Sort order: alphabetical by title.** The watchlist is shown in A–Z order, since users mostly open it to find a specific film to watch.
+
+### How to test it manually
+1. Start the app:
+   ```bash
+   python app.py     # runs on http://localhost:5000
+   ```
+2. Create a user and a few films to test with (there's no endpoint for this yet), and copy the printed IDs:
+   ```bash
+   python -c "
+   from app import create_app, db
+   from models import User, Film
+   app = create_app()
+   with app.app_context():
+       u = User(username='alice', email='alice@example.com')
+       films = [Film(title='Dune'), Film(title='Arrival'), Film(title='Blade Runner')]
+       db.session.add_all([u, *films]); db.session.commit()
+       print('USER_ID =', u.id)
+       for f in films: print(f.title, '=', f.id)
+   "
+   ```
+3. Add a film (should return `201`):
+   ```bash
+   curl -X POST http://localhost:5000/watchlist/<USER_ID>/add \
+     -H "Content-Type: application/json" -d '{"film_id": "<DUNE_ID>"}'
+   ```
+4. Add the other two films, then view the watchlist:
+   ```bash
+   curl http://localhost:5000/watchlist/<USER_ID>
+   ```
+   - Films come back in A–Z order: Arrival, Blade Runner, Dune.
+   - Each entry shows `"public": true`.
+5. Check the error cases:
+   - Add the same film again → `409` (already on watchlist).
+   - Add a made-up film id → `404` (film not found).
+   - Send an empty body `{}` → `400` (film_id is required).
+
+## Commit History
+The `git log --oneline` output below shows the clean, linear commit history after rebasing on main (one commit per review comment, no merge commits):
+
+![git log --oneline output showing linear commit history after the rebase](GitOneLine.png)
