@@ -15,8 +15,8 @@ What happens if a user calls this with a film that's already on their watchlist?
 
 ## Comment 3 — Missing test
 Please add a test for the case where film_id doesn't exist in the database. Look at the existing tests in test_collection.py — the pattern is there. Create a new file tests/test_watchlist.py. Read tests/test_collection.py and find test_add_to_collection_nonexistent_film_raises — write the equivalent test for add_to_watchlist() following the same fixture and assertion structure.
-**What I did:** 
-**How I verified:** 
+**What I did:** Created `tests/test_watchlist.py` with the same `app`, `sample_user`, and `sample_film` fixtures as `test_collection.py`. Added `test_add_to_watchlist_nonexistent_film_raises`, the direct equivalent of `test_add_to_collection_nonexistent_film_raises`: it calls `add_to_watchlist()` with a film_id that was never inserted and asserts `FilmNotFoundError` is raised inside `pytest.raises(...)`. (Since film IDs are still integers on this branch, the fake id is `999999` rather than a UUID string — this becomes a UUID in Comment 6.)
+**How I verified:** `pytest tests/test_watchlist.py` passes, and the full `tests/` suite stays green.
 
 ## Comment 4 — Default visibility
 I notice watchlists default to public=True. We don't have a documented decision on default visibility for user lists. Before I can approve this, I need you to add a note to your PR description explaining your reasoning. I want to make sure we're being intentional here, not just inheriting a default.
